@@ -11,7 +11,7 @@ describe('react-optimistic', () => {
         {({ state }) => <div>{state}</div>}
       </Optimistic>
 
-    expect(render(<A />).toJSON().children[0]).toBe('not updated')
+    expect(render(<A />).toJSON().children[0]).toBe(Optimistic.NOT_UPDATED_STATE)
   })
 
   it('renders optimistic updates', () => {
@@ -27,28 +27,7 @@ describe('react-optimistic', () => {
     const tree = render(<A />)
     tree.toJSON().props.onClick()
 
-    expect(tree.toJSON().children[0]).toBe('updated')
-  })
-
-  it('renders failed on reject', () => {
-    const action = () => new Promise((res, rej) => {
-      setTimeout(rej, 0)
-    })
-    const A = () =>
-      <Optimistic>{
-        ({ state, updater }) =>
-          <div onClick={updater(action)}>
-            {state}
-          </div>
-      }</Optimistic>
-
-    const tree = render(<A />)
-    const promise = tree.toJSON().props.onClick()
-    expect(tree.toJSON().children[0]).toBe('updated')
-
-    return promise.then(() => {
-      expect(tree.toJSON().children[0]).toBe('failed')
-    })
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
   })
 
   it('resets the state', () => {
@@ -58,20 +37,20 @@ describe('react-optimistic', () => {
     const A = () =>
       <Optimistic>{
         ({ state, updater, reset }) =>
-          <div onClick={state === Optimistic.NOT_UPDATED_STATE ? updater(action) : reset}>
+          <div onUpdate={updater(action)} onReset={reset}>
             {state}
           </div>
       }</Optimistic>
 
     const tree = render(<A />)
-    const promise = tree.toJSON().props.onClick()
-    expect(tree.toJSON().children[0]).toBe('updated')
+    const promise = tree.toJSON().props.onUpdate()
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
 
     return promise.then(() => {
-      expect(tree.toJSON().children[0]).toBe('failed')
+      expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
 
-      const promise = tree.toJSON().props.onClick()
-      expect(tree.toJSON().children[0]).toBe('not updated')
+      const promise = tree.toJSON().props.onReset()
+      expect(tree.toJSON().children[0]).toBe(Optimistic.NOT_UPDATED_STATE)
     })
   })
 
@@ -92,15 +71,15 @@ describe('react-optimistic', () => {
 
     const tree = render(<A />)
     const promise = tree.toJSON().props.onUpdate()
-    expect(tree.toJSON().children[0]).toBe('updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
 
     tree.toJSON().props.onReset()
-    expect(tree.toJSON().children[0]).toBe('not updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.NOT_UPDATED_STATE)
 
     jest.runAllTimers()
 
     return promise.then(() => {
-      expect(tree.toJSON().children[0]).toBe('not updated')
+      expect(tree.toJSON().children[0]).toBe(Optimistic.NOT_UPDATED_STATE)
     })
   })
 
@@ -121,7 +100,7 @@ describe('react-optimistic', () => {
 
     const tree = render(<A />)
     const promise = tree.toJSON().props.onUpdate()
-    expect(tree.toJSON().children[0]).toBe('updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
 
     tree.unmount()
     jest.spyOn(console, 'error')
@@ -134,7 +113,7 @@ describe('react-optimistic', () => {
 
   it('accepts a initial state prop', () => {
     const action = () => new Promise((res, rej) => {
-      setTimeout(res, 0)
+      setTimeout(res, 100)
     })
     const A = () =>
       <Optimistic initialState={Optimistic.UPDATED_STATE}>{
@@ -145,12 +124,51 @@ describe('react-optimistic', () => {
       }</Optimistic>
 
     const tree = render(<A />)
-    expect(tree.toJSON().children[0]).toBe('updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
 
     tree.toJSON().props.onUpdate()
-    expect(tree.toJSON().children[0]).toBe('not updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.NOT_UPDATED_STATE)
 
     tree.toJSON().props.onReset()
-    expect(tree.toJSON().children[0]).toBe('updated')
+    expect(tree.toJSON().children[0]).toBe(Optimistic.UPDATED_STATE)
+  })
+
+  it('passes request state', () => {
+    jest.useFakeTimers()
+
+    const action = () => new Promise((res, rej) => {
+      setTimeout(res, 100)
+    })
+    const failureAction = () => new Promise((res, rej) => {
+      setTimeout(rej, 100)
+    })
+    const A = () =>
+      <Optimistic>{
+        ({ reqState, updater, reset }) =>
+          <div onUpdate={updater(action)} onFail={updater(failureAction)} onReset={reset}>
+            {reqState}
+          </div>
+      }</Optimistic>
+
+    const tree = render(<A />)
+    expect(tree.toJSON().children[0]).toBe(Optimistic.NONE_REQUEST_STATE)
+
+    const promise = tree.toJSON().props.onUpdate()
+    expect(tree.toJSON().children[0]).toBe(Optimistic.PENDING_REQUEST_STATE)
+
+    jest.runAllTimers()
+
+    return promise.then(() => {
+      expect(tree.toJSON().children[0]).toBe(Optimistic.RESOLVED_REQUEST_STATE)
+
+      tree.toJSON().props.onReset()
+      expect(tree.toJSON().children[0]).toBe(Optimistic.NONE_REQUEST_STATE)
+
+      const promise2 = tree.toJSON().props.onFail()
+      jest.runAllTimers()
+      return promise2
+    }).then(() => {
+      expect(tree.toJSON().children[0]).toBe(Optimistic.REJECTED_REQUEST_STATE)
+    })
   })
 })
