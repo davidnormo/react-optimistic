@@ -7,7 +7,7 @@ A naive, optimistic button.
 
 ![naive optimistic button gif](./react-optimistic-naive.gif)
 
-```
+```jsx
 import Optimistic from 'react-optimistic'
 
 // ...
@@ -33,30 +33,22 @@ import Optimistic from 'react-optimistic'
 - Optimistic : ReactComponent
 
   The Optimistic component takes a render prop with the following signature:
-  ```
-  ({
-    state : string,
-    reqState : string,
-    updater : function,
-    reset : function,
-  }) : ReactElement
+  ```typescript
+  interface Args {
+    state: string
+    reqState: string
+    updater: function
+    reset: function
+  }
+  let renderProp: (args: Args) => ReactElement
   ```
 
   - props
-    - children : function
-      - args
-        - options : object
-          - options.state : string - The current state
-          - options.reqState : string - The current state of the promise
-          - options.updater : function - A function which takes a function that returns a promise
-          - options.reset : function - A 0-arity function used for resetting the state
-      - returns
-        - ReactElement
-
+    - children: renderProp
     - initialState : string
 
   **Example**
-  ```
+  ```jsx
     const Foo = ({ onClick }) =>
       <Optimistic>
         {({ state, updater }) => <button onClick={updater(onClick)}>{state}</button>}
