@@ -2,11 +2,6 @@
 
 _A generic, optimistic update helper._
 
-## Intro
-A naive, optimistic button.
-
-![naive optimistic button gif](./react-optimistic-naive.gif)
-
 ```jsx
 import Optimistic from 'react-optimistic'
 
@@ -27,6 +22,10 @@ import Optimistic from 'react-optimistic'
   }
 </Optimistic>
 ```
+A naive, optimistic button.
+
+![naive optimistic button gif](./react-optimistic-naive.gif)
+
 
 ## API
 
