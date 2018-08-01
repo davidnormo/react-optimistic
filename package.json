@@ -1,0 +1,39 @@
+{
+  "name": "react-async-state",
+  "version": "0.1.0",
+  "description": "",
+  "main": "build.js",
+  "module": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "babel index.js > build.js",
+    "prepublishOnly": "npm run build",
+    "build:examples": "parcel examples/*.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-jest": "^23.4.2",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "jest-cli": "^23.4.2",
+    "prop-types": "^15.6.2",
+    "react": "^16.4.1",
+    "react-test-renderer": "^16.4.1"
+  },
+  "peerDependencies": {
+    "react": "~16.0.0",
+    "prop-types": "^15.6.2"
+  },
+  "jest": {
+    "testURL": "http://local.com",
+    "transform": {
+      "^.+\\.jsx?$": "babel-jest"
+    }
+  },
+  "dependencies": {
+    "react-dom": "^16.4.1"
+  }
+}
