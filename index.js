@@ -4,7 +4,7 @@ const PropTypes = require('prop-types')
 class Optimistic extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { state: Optimistic.START_STATE }
+    this.state = { state: props.initialState }
   }
 
   componentWillUnmount() {
@@ -15,13 +15,17 @@ class Optimistic extends React.Component {
     return this.props.children({
       state: this.state.state,
       reset: () => {
-        this.promise.cancelled = true
-        this.setState({ state: Optimistic.START_STATE })
+        if (this.promise) this.promise.cancelled = true
+        this.setState({
+          state: this.props.initialState,
+        })
       },
       updater: (action) =>
         (...args) => {
           this.setState({
-            state: Optimistic.UPDATED_STATE,
+            state: this.state.state === Optimistic.NOT_UPDATED_STATE
+              ? Optimistic.UPDATED_STATE
+              : Optimistic.NOT_UPDATED_STATE,
           })
           this.promise = action(...args)
 
@@ -37,12 +41,21 @@ class Optimistic extends React.Component {
   }
 }
 
-Optimistic.propTypes = {
-  children: PropTypes.func.isRequired,
-}
-
-Optimistic.START_STATE = 'start'
+Optimistic.NOT_UPDATED_STATE = 'not updated'
 Optimistic.UPDATED_STATE = 'updated'
 Optimistic.FAILED_STATE = 'failed'
+
+Optimistic.defaultProps = {
+  initialState: Optimistic.NOT_UPDATED_STATE,
+}
+
+Optimistic.propTypes = {
+  children: PropTypes.func.isRequired,
+  initialState: PropTypes.oneOf([
+    Optimistic.NOT_UPDATED_STATE,
+    Optimistic.UPDATED_STATE,
+    Optimistic.FAILED_STATE,
+  ])
+}
 
 module.exports = Optimistic

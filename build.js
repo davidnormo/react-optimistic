@@ -11,10 +11,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var React = require('react');
 var PropTypes = require('prop-types');
 
-var START_STATE = 'start';
-var UPDATED_STATE = 'updated';
-var FAILED_STATE = 'failed';
-
 var Optimistic = function (_React$Component) {
   _inherits(Optimistic, _React$Component);
 
@@ -23,11 +19,16 @@ var Optimistic = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (Optimistic.__proto__ || Object.getPrototypeOf(Optimistic)).call(this, props));
 
-    _this.state = { state: START_STATE };
+    _this.state = { state: props.initialState };
     return _this;
   }
 
   _createClass(Optimistic, [{
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      if (this.promise) this.promise.cancelled = true;
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this2 = this;
@@ -35,17 +36,23 @@ var Optimistic = function (_React$Component) {
       return this.props.children({
         state: this.state.state,
         reset: function reset() {
-          _this2.setState({ state: START_STATE });
+          if (_this2.promise) _this2.promise.cancelled = true;
+          _this2.setState({
+            state: _this2.props.initialState
+          });
         },
         updater: function updater(action) {
           return function () {
             _this2.setState({
-              state: UPDATED_STATE
+              state: _this2.state.state === Optimistic.NOT_UPDATED_STATE ? Optimistic.UPDATED_STATE : Optimistic.NOT_UPDATED_STATE
             });
+            _this2.promise = action.apply(undefined, arguments);
 
-            return action.apply(undefined, arguments).catch(function () {
+            return _this2.promise.catch(function () {
+              if (_this2.promise.cancelled) return;
+
               _this2.setState({
-                state: FAILED_STATE
+                state: Optimistic.FAILED_STATE
               });
             });
           };
@@ -57,13 +64,18 @@ var Optimistic = function (_React$Component) {
   return Optimistic;
 }(React.Component);
 
-Optimistic.propTypes = {
-  children: PropTypes.func.isRequired
+Optimistic.NOT_UPDATED_STATE = 'not updated';
+Optimistic.UPDATED_STATE = 'updated';
+Optimistic.FAILED_STATE = 'failed';
+
+Optimistic.defaultProps = {
+  initialState: Optimistic.NOT_UPDATED_STATE
 };
 
-Optimistic.START_STATE = START_STATE;
-Optimistic.UPDATED_STATE = UPDATED_STATE;
-Optimistic.FAILED_STATE = FAILED_STATE;
+Optimistic.propTypes = {
+  children: PropTypes.func.isRequired,
+  initialState: PropTypes.oneOf([Optimistic.NOT_UPDATED_STATE, Optimistic.UPDATED_STATE, Optimistic.FAILED_STATE])
+};
 
 module.exports = Optimistic;
 

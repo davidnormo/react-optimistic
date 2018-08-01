@@ -11,7 +11,7 @@ describe('react-optimistic', () => {
         {({ state }) => <div>{state}</div>}
       </Optimistic>
 
-    expect(render(<A />).toJSON().children[0]).toBe('start')
+    expect(render(<A />).toJSON().children[0]).toBe('not updated')
   })
 
   it('renders optimistic updates', () => {
@@ -58,7 +58,7 @@ describe('react-optimistic', () => {
     const A = () =>
       <Optimistic>{
         ({ state, updater, reset }) =>
-          <div onClick={state === Optimistic.START_STATE ? updater(action) : reset}>
+          <div onClick={state === Optimistic.NOT_UPDATED_STATE ? updater(action) : reset}>
             {state}
           </div>
       }</Optimistic>
@@ -71,7 +71,7 @@ describe('react-optimistic', () => {
       expect(tree.toJSON().children[0]).toBe('failed')
 
       const promise = tree.toJSON().props.onClick()
-      expect(tree.toJSON().children[0]).toBe('start')
+      expect(tree.toJSON().children[0]).toBe('not updated')
     })
   })
 
@@ -95,12 +95,12 @@ describe('react-optimistic', () => {
     expect(tree.toJSON().children[0]).toBe('updated')
 
     tree.toJSON().props.onReset()
-    expect(tree.toJSON().children[0]).toBe('start')
+    expect(tree.toJSON().children[0]).toBe('not updated')
 
     jest.runAllTimers()
 
     return promise.then(() => {
-      expect(tree.toJSON().children[0]).toBe('start')
+      expect(tree.toJSON().children[0]).toBe('not updated')
     })
   })
 
@@ -130,5 +130,27 @@ describe('react-optimistic', () => {
     return promise.then(() => {
       expect(console.error).not.toHaveBeenCalled()
     })
+  })
+
+  it('accepts a initial state prop', () => {
+    const action = () => new Promise((res, rej) => {
+      setTimeout(res, 0)
+    })
+    const A = () =>
+      <Optimistic initialState={Optimistic.UPDATED_STATE}>{
+        ({ state, updater, reset }) =>
+          <div onUpdate={updater(action)} onReset={reset}>
+            {state}
+          </div>
+      }</Optimistic>
+
+    const tree = render(<A />)
+    expect(tree.toJSON().children[0]).toBe('updated')
+
+    tree.toJSON().props.onUpdate()
+    expect(tree.toJSON().children[0]).toBe('not updated')
+
+    tree.toJSON().props.onReset()
+    expect(tree.toJSON().children[0]).toBe('updated')
   })
 })
