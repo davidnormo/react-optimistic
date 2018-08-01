@@ -17,7 +17,7 @@ import Optimistic from 'react-optimistic'
     <div>
       <button
         className="optimistic-btn"
-        onClick={updater(successfulAction)}
+        onClick={updater(successfulAction)} // successfulAction returns a Promise
         >
         {state}
       </button>
@@ -34,7 +34,12 @@ import Optimistic from 'react-optimistic'
 
   The Optimistic component takes a render prop with the following signature:
   ```
-  ({ state: string, reqState : string, updater : function, reset : function }) : ReactElement
+  ({
+    state : string,
+    reqState : string,
+    updater : function,
+    reset : function,
+  }) : ReactElement
   ```
 
   - props
@@ -49,3 +54,11 @@ import Optimistic from 'react-optimistic'
         - ReactElement
 
     - initialState : string
+
+  **Example**
+  ```
+    const Foo = ({ onClick }) =>
+      <Optimistic>
+        {({ state, updater }) => <button onClick={updater(onClick)}>{state}</button>}
+      </Optimistic>
+  ```
