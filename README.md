@@ -1,4 +1,6 @@
-# react-optimistic [![npm version](https://badge.fury.io/js/react-optimistic.svg)](https://badge.fury.io/js/react-optimistic)
+# react-optimistic 
+
+[![npm version](https://badge.fury.io/js/react-optimistic.svg)](https://badge.fury.io/js/react-optimistic)
 
 _A generic, optimistic update helper._
 
