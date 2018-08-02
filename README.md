@@ -26,6 +26,11 @@ A naive, optimistic button.
 
 ![naive optimistic button gif](./react-optimistic-naive.gif)
 
+## Install
+
+```
+npm install react-optimistic
+```
 
 ## API
 
